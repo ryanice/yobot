@@ -1401,21 +1401,27 @@ class ClanBattle:
             )
             return f'公会战面板：\n{url}\n建议添加到浏览器收藏夹或桌面快捷方式'
         elif match_num == 16:  # SL
-            if len(cmd) == 2:
-                try:
-                    self.save_slot(group_id, user_id)
-                except ClanBattleError as e:
-                    _logger.info('群聊 失败 {} {} {}'.format(
-                        user_id, group_id, cmd))
-                    return str(e)
-                _logger.info('群聊 成功 {} {} {}'.format(user_id, group_id, cmd))
-                return '已记录SL'
-            elif cmd[2:].strip() in ['?', '？']:
-                sl_ed = self.save_slot(group_id, user_id, only_check=True)
+            match = re.match(
+                r'^[sS][lL] ?(?:\[CQ:at,qq=(\d+)\]) ?[?？]?', cmd)
+            if match:
+                behalf = match.group(1) and int(match.group(1))
+            else:
+                behalf = user_id
+            if cmd.strip() in ['?', '？']:
+                sl_ed = self.save_slot(group_id, behalf, only_check=True)
                 if sl_ed:
                     return '今日已使用SL'
                 else:
                     return '今日未使用SL'
+            else:
+                try:
+                    self.save_slot(group_id, behalf)
+                except ClanBattleError as e:
+                    _logger.info('群聊 失败 {} {} {}'.format(
+                        user_id, group_id, cmd))
+                    return str(e)
+                _logger.info('群聊 成功 {} {} {}'.format(behalf, group_id, cmd))
+                return '已记录SL'
         elif 20 <= match_num <= 25:
             if len(cmd) != 2:
                 return
